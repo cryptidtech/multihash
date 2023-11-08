@@ -3,11 +3,14 @@ use digest::{Digest, DynDigest};
 use multibase::Base;
 use multicodec::codec::Codec;
 use multiutil::{EncodeInto, TryDecodeFrom};
-use std::fmt;
+use std::{
+    fmt,
+    hash::{Hash, Hasher},
+};
 use typenum::consts::*;
 
 /// The main multihash structure
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Multihash {
     /// The hash codec
     codec: Codec,
@@ -37,6 +40,15 @@ impl PartialEq for Multihash {
     }
 }
 
+impl Eq for Multihash {}
+
+impl Hash for Multihash {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.codec.hash(state);
+        self.hash.hash(state);
+    }
+}
+
 impl Default for Multihash {
     fn default() -> Self {
         Multihash {
@@ -47,7 +59,7 @@ impl Default for Multihash {
     }
 }
 
-impl fmt::Display for Multihash {
+impl fmt::Debug for Multihash {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Base::*;
         let base = match self.encoding {
@@ -106,6 +118,13 @@ impl EncodeInto for Multihash {
 impl AsRef<[u8]> for Multihash {
     fn as_ref(&self) -> &[u8] {
         self.hash.as_ref()
+    }
+}
+
+/// Convert the multihash to a String using the specified encoding
+impl ToString for Multihash {
+    fn to_string(&self) -> String {
+        multibase::encode(self.encoding, &self.hash)
     }
 }
 
@@ -247,7 +266,8 @@ mod tests {
                 .unwrap()
         );
 
-        println!("{}", mh);
+        println!("{:?}", mh);
+        println!("{}", mh.to_string());
 
         let v = mh.encode_into();
         assert_eq!(34, v.len());
