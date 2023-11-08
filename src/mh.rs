@@ -1,28 +1,88 @@
 use crate::{error::Error, Result};
 use digest::{Digest, DynDigest};
+use multibase::Base;
 use multicodec::codec::Codec;
 use multiutil::{EncodeInto, TryDecodeFrom};
 use std::fmt;
 use typenum::consts::*;
 
 /// The main multihash structure
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Multihash {
     /// The hash codec
-    pub codec: Codec,
+    codec: Codec,
+
+    /// The multibase encoding
+    encoding: Base,
 
     /// The hash data
-    pub hash: Vec<u8>,
+    hash: Vec<u8>,
+}
+
+impl Multihash {
+    /// get the hash codec
+    pub fn codec(&self) -> Codec {
+        self.codec
+    }
+
+    /// get the encoding format
+    pub fn encoding(&self) -> Base {
+        self.encoding
+    }
+}
+
+impl PartialEq for Multihash {
+    fn eq(&self, other: &Self) -> bool {
+        self.codec == other.codec && self.hash == other.hash
+    }
+}
+
+impl Default for Multihash {
+    fn default() -> Self {
+        Multihash {
+            codec: Codec::default(),
+            encoding: Base::Base16Lower,
+            hash: Vec::default(),
+        }
+    }
 }
 
 impl fmt::Display for Multihash {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use Base::*;
+        let base = match self.encoding {
+            Identity => "Raw Binary",
+            Base2 => "Base2",
+            Base8 => "Base8",
+            Base10 => "Base10",
+            Base16Lower => "Base16 Lower",
+            Base16Upper => "Base16 Upper",
+            Base32Lower => "Base32 Lower",
+            Base32Upper => "Base32 Upper",
+            Base32PadLower => "Base32 Lower w/Padding",
+            Base32PadUpper => "Base32 Upper w/Padding",
+            Base32HexLower => "Base32 Hex Lower",
+            Base32HexUpper => "Base32 Hex Upper",
+            Base32HexPadLower => "Base32 Hex Lower w/Padding",
+            Base32HexPadUpper => "Base32 Hex Upper w/Padding",
+            Base32Z => "Z-Base32",
+            Base36Lower => "Base36 Lower",
+            Base36Upper => "Base36 Upper",
+            Base58Flickr => "Base58 Flickr",
+            Base58Btc => "Base58 Bitcoin",
+            Base64 => "Base64",
+            Base64Pad => "Base64 w/Padding",
+            Base64Url => "Base64 URL Safe",
+            Base64UrlPad => "Base64 URL Safe w/Padding",
+        };
+
         writeln!(
             f,
-            "{} - 0x{:x} - {}",
+            "{} - {} ({}) - {}",
             self.codec,
-            self.hash.len(),
-            hex::encode(&self.hash)
+            base,
+            self.encoding.code(),
+            multibase::encode(self.encoding, &self.hash)
         )
     }
 }
@@ -42,6 +102,14 @@ impl EncodeInto for Multihash {
     }
 }
 
+/// Exposes direct access to the hash data
+impl AsRef<[u8]> for Multihash {
+    fn as_ref(&self) -> &[u8] {
+        self.hash.as_ref()
+    }
+}
+
+/// Try decoding the multihash from a multibase encoded string
 impl TryFrom<String> for Multihash {
     type Error = Error;
 
@@ -50,13 +118,15 @@ impl TryFrom<String> for Multihash {
     }
 }
 
+/// Try decoding the multihash from a multibase encoded &str
 impl TryFrom<&str> for Multihash {
     type Error = Error;
 
     fn try_from(s: &str) -> std::result::Result<Self, Self::Error> {
         match multibase::decode(s) {
-            Ok((_, v)) => {
-                let (mk, _) = Self::try_decode_from(v.as_slice())?;
+            Ok((base, v)) => {
+                let (mut mk, _) = Self::try_decode_from(v.as_slice())?;
+                mk.encoding = base;
                 Ok(mk)
             }
             Err(e) => Err(Error::Multibase(e)),
@@ -64,6 +134,7 @@ impl TryFrom<&str> for Multihash {
     }
 }
 
+/// Try decoding the multihash from a multiformat encoded byte array
 impl TryFrom<Vec<u8>> for Multihash {
     type Error = Error;
 
@@ -87,7 +158,14 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
         let mut hash = Vec::with_capacity(size);
         hash.extend_from_slice(&ptr[..size]);
 
-        Ok((Self { codec, hash }, ptr))
+        Ok((
+            Self {
+                codec,
+                encoding: Base::Base16Lower,
+                hash,
+            },
+            ptr,
+        ))
     }
 }
 
@@ -95,12 +173,22 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
 #[derive(Clone, Debug, Default)]
 pub struct Builder {
     codec: Codec,
+    encoding: Option<Base>,
 }
 
 impl Builder {
     /// create a hash with the given codec
     pub fn new(codec: Codec) -> Self {
-        Builder { codec }
+        Builder {
+            codec,
+            encoding: None,
+        }
+    }
+
+    /// add an encoding
+    pub fn with_encoding(mut self, base: Base) -> Self {
+        self.encoding = Some(base);
+        self
     }
 
     /// build the multihash by hashing the provided data
@@ -136,6 +224,7 @@ impl Builder {
 
         Ok(Multihash {
             codec: self.codec,
+            encoding: self.encoding.unwrap_or(Base::Base16Lower),
             hash: hasher.finalize().to_vec(),
         })
     }
@@ -148,6 +237,7 @@ mod tests {
     #[test]
     fn test_simple() {
         let mh = Builder::new(Codec::Sha2256)
+            .with_encoding(Base::Base58Btc)
             .try_build(b"for great justice, move every zig!")
             .unwrap();
 
@@ -156,6 +246,8 @@ mod tests {
             hex::decode("e28c7aeb3a876b25ed822472e47a696fe25214c1672f0972195f9b64eea41e7e")
                 .unwrap()
         );
+
+        println!("{}", mh);
 
         let v = mh.encode_into();
         assert_eq!(34, v.len());
