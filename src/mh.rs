@@ -19,7 +19,7 @@ pub struct Multihash {
     codec: Codec,
 
     /// The multibase encoding
-    encoding: Base,
+    string_encoding: Base,
 
     /// The hash data
     hash: Vec<u8>,
@@ -32,8 +32,8 @@ impl Multihash {
     }
 
     /// get the encoding format
-    pub fn encoding(&self) -> Base {
-        self.encoding
+    pub fn string_encoding(&self) -> Base {
+        self.string_encoding
     }
 }
 
@@ -56,7 +56,7 @@ impl Default for Multihash {
     fn default() -> Self {
         Multihash {
             codec: Codec::default(),
-            encoding: Base::Base16Lower,
+            string_encoding: Base::Base16Lower,
             hash: Vec::default(),
         }
     }
@@ -65,7 +65,7 @@ impl Default for Multihash {
 impl fmt::Debug for Multihash {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Base::*;
-        let base = match self.encoding {
+        let base = match self.string_encoding {
             Identity => "Raw Binary",
             Base2 => "Base2",
             Base8 => "Base8",
@@ -96,8 +96,8 @@ impl fmt::Debug for Multihash {
             "Multihash (0x31) - {} - {} ({}) - {}",
             self.codec,
             base,
-            self.encoding.code(),
-            multibase::encode(self.encoding, &self.hash)
+            self.string_encoding.code(),
+            multibase::encode(self.string_encoding, &self.hash)
         )
     }
 }
@@ -131,7 +131,7 @@ impl AsRef<[u8]> for Multihash {
 impl ToString for Multihash {
     fn to_string(&self) -> String {
         let v = self.encode_into();
-        multibase::encode(self.encoding, &v)
+        multibase::encode(self.string_encoding, &v)
     }
 }
 
@@ -152,7 +152,7 @@ impl TryFrom<&str> for Multihash {
         match multibase::decode(s) {
             Ok((base, v)) => {
                 let (mut mk, _) = Self::try_decode_from(v.as_slice())?;
-                mk.encoding = base;
+                mk.string_encoding = base;
                 Ok(mk)
             }
             Err(e) => Err(Error::Multibase(e)),
@@ -193,7 +193,7 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
         Ok((
             Self {
                 codec,
-                encoding: Base::Base16Lower,
+                string_encoding: Base::Base16Lower,
                 hash,
             },
             ptr,
@@ -205,7 +205,7 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
 #[derive(Clone, Debug, Default)]
 pub struct Builder {
     codec: Codec,
-    encoding: Option<Base>,
+    string_encoding: Option<Base>,
 }
 
 impl Builder {
@@ -213,13 +213,13 @@ impl Builder {
     pub fn new(codec: Codec) -> Self {
         Builder {
             codec,
-            encoding: None,
+            string_encoding: None,
         }
     }
 
     /// add an encoding
-    pub fn with_encoding(mut self, base: Base) -> Self {
-        self.encoding = Some(base);
+    pub fn with_string_encoding(mut self, base: Base) -> Self {
+        self.string_encoding = Some(base);
         self
     }
 
@@ -256,7 +256,7 @@ impl Builder {
 
         Ok(Multihash {
             codec: self.codec,
-            encoding: self.encoding.unwrap_or(Base::Base16Lower),
+            string_encoding: self.string_encoding.unwrap_or(Base::Base16Lower),
             hash: hasher.finalize().to_vec(),
         })
     }
@@ -269,7 +269,7 @@ mod tests {
     #[test]
     fn test_simple() {
         let mh = Builder::new(Codec::Sha2256)
-            .with_encoding(Base::Base58Btc)
+            .with_string_encoding(Base::Base58Btc)
             .try_build(b"for great justice, move every zig!")
             .unwrap();
 
