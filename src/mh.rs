@@ -9,6 +9,9 @@ use std::{
 };
 use typenum::consts::*;
 
+/// the multicodec sigil for multihash
+pub const SIGIL: Codec = Codec::Multihash;
+
 /// The main multihash structure
 #[derive(Clone)]
 pub struct Multihash {
@@ -90,7 +93,7 @@ impl fmt::Debug for Multihash {
 
         writeln!(
             f,
-            "{} - {} ({}) - {}",
+            "Multihash (0x31) - {} - {} ({}) - {}",
             self.codec,
             base,
             self.encoding.code(),
@@ -102,9 +105,12 @@ impl fmt::Debug for Multihash {
 impl EncodeInto for Multihash {
     fn encode_into(&self) -> Vec<u8> {
         // start with the sigil
-        let mut v = self.codec.encode_into();
+        let mut v = SIGIL.encode_into();
 
-        // add the key codec
+        // add the multihash codec
+        v.append(&mut self.codec.encode_into());
+
+        // add the hash length
         v.append(&mut self.hash.len().encode_into());
 
         // add the hash
@@ -124,7 +130,8 @@ impl AsRef<[u8]> for Multihash {
 /// Convert the multihash to a String using the specified encoding
 impl ToString for Multihash {
     fn to_string(&self) -> String {
-        multibase::encode(self.encoding, &self.hash)
+        let v = self.encode_into();
+        multibase::encode(self.encoding, &v)
     }
 }
 
@@ -167,8 +174,14 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
     type Error = Error;
 
     fn try_decode_from(bytes: &'a [u8]) -> std::result::Result<(Self, &'a [u8]), Self::Error> {
+        // decode the sigil first
+        let (sigil, ptr) = Codec::try_decode_from(bytes)?;
+        if sigil != SIGIL {
+            return Err(Error::MissingSigil);
+        }
+
         // decode the hash codec
-        let (codec, ptr) = Codec::try_decode_from(bytes)?;
+        let (codec, ptr) = Codec::try_decode_from(ptr)?;
 
         // decode the hash size
         let (size, ptr) = usize::try_decode_from(ptr)?;
@@ -270,7 +283,7 @@ mod tests {
         println!("{}", mh.to_string());
 
         let v = mh.encode_into();
-        assert_eq!(34, v.len());
+        assert_eq!(35, v.len());
     }
 
     #[test]
