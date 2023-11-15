@@ -2,7 +2,7 @@ use crate::{error::Error, Result};
 use digest::{Digest, DynDigest};
 use multibase::Base;
 use multicodec::codec::Codec;
-use multiutil::{EncodeInto, TryDecodeFrom};
+use multiutil::{base_name, EncodeInto, TryDecodeFrom};
 use std::{
     fmt,
     hash::{Hash, Hasher},
@@ -64,38 +64,11 @@ impl Default for Multihash {
 
 impl fmt::Debug for Multihash {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use Base::*;
-        let base = match self.string_encoding {
-            Identity => "Raw Binary",
-            Base2 => "Base2",
-            Base8 => "Base8",
-            Base10 => "Base10",
-            Base16Lower => "Base16 Lower",
-            Base16Upper => "Base16 Upper",
-            Base32Lower => "Base32 Lower",
-            Base32Upper => "Base32 Upper",
-            Base32PadLower => "Base32 Lower w/Padding",
-            Base32PadUpper => "Base32 Upper w/Padding",
-            Base32HexLower => "Base32 Hex Lower",
-            Base32HexUpper => "Base32 Hex Upper",
-            Base32HexPadLower => "Base32 Hex Lower w/Padding",
-            Base32HexPadUpper => "Base32 Hex Upper w/Padding",
-            Base32Z => "Z-Base32",
-            Base36Lower => "Base36 Lower",
-            Base36Upper => "Base36 Upper",
-            Base58Flickr => "Base58 Flickr",
-            Base58Btc => "Base58 Bitcoin",
-            Base64 => "Base64",
-            Base64Pad => "Base64 w/Padding",
-            Base64Url => "Base64 URL Safe",
-            Base64UrlPad => "Base64 URL Safe w/Padding",
-        };
-
         writeln!(
             f,
             "Multihash (0x31) - {} - {} ({}) - {}",
             self.codec,
-            base,
+            base_name(self.string_encoding),
             self.string_encoding.code(),
             multibase::encode(self.string_encoding, &self.hash)
         )
