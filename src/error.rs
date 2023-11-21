@@ -10,11 +10,15 @@ pub enum Error {
 
     /// A multicodec decoding error
     #[error(transparent)]
-    Multicodec(#[from] multicodec::error::Error),
+    Multicodec(#[from] multicodec::Error),
 
     /// Multiutil error
     #[error(transparent)]
     Multiutil(#[from] multiutil::Error),
+
+    /// Multitrait error
+    #[error(transparent)]
+    Multitrait(#[from] multitrait::Error),
 
     /// Missing sigil 0x31
     #[error("Missing Multihash sigil")]
@@ -22,5 +26,5 @@ pub enum Error {
 
     /// Error with the hash scheme
     #[error("Unsupported hash algorithm: {0}")]
-    UnsupportedHash(multicodec::codec::Codec),
+    UnsupportedHash(String),
 }

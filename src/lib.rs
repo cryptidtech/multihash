@@ -7,20 +7,22 @@
     unused_qualifications
 )]
 
-/// The result type for this crate
-pub type Result<T> = anyhow::Result<T>;
-
 /// Errors produced by this library
 pub mod error;
+pub use error::Error;
 
-/// Multikey type and functions
+/// Multihash type and functions
 pub mod mh;
+
+/// Serde serialization for Multihash
+#[cfg(feature = "serde")]
+pub mod serde;
 
 /// ...and in the darkness bind them
 pub mod prelude {
-    use super::*;
-
-    pub use super::Result;
-    pub use error::*;
-    pub use mh::*;
+    pub use super::mh::{Builder, Multihash};
+    /// re-exports
+    pub use multibase::Base;
+    pub use multicodec::prelude::Codec;
+    pub use multiutil::prelude::{BaseEncoded, Tagged};
 }
