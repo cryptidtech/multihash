@@ -24,5 +24,5 @@ pub mod prelude {
     /// re-exports
     pub use multibase::Base;
     pub use multicodec::prelude::Codec;
-    pub use multiutil::prelude::{BaseEncoded, Tagged};
+    pub use multiutil::prelude::BaseEncoded;
 }
