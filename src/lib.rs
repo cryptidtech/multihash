@@ -13,6 +13,7 @@ pub use error::Error;
 
 /// Multihash type and functions
 pub mod mh;
+pub use mh::{Builder, EncodedMultihash, Multihash};
 
 /// Serde serialization for Multihash
 #[cfg(feature = "serde")]
