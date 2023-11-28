@@ -113,7 +113,14 @@ impl AsRef<[u8]> for Multihash {
 
 impl fmt::Debug for Multihash {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{} - ('{}')", self.codec().as_str(), self.codec().code())
+        write!(
+            f,
+            "{} - (0x{:x}) - {} - (0x{:x})",
+            SIGIL.as_str(),
+            SIGIL.code(),
+            self.codec().as_str(),
+            self.codec().code()
+        )
     }
 }
 
@@ -190,7 +197,6 @@ impl Builder {
 mod tests {
     use super::*;
 
-    /*
     #[test]
     fn test_matrix() {
         let hashers = vec![
@@ -249,16 +255,12 @@ mod tests {
                     .with_encoding(*b)
                     .try_build_encoded(b"for great justice, move every zig!")
                     .unwrap();
-
-                println!("{:?}", mh1);
-
+                //println!("{:?}", mh1);
                 let s = mh1.to_string();
-
                 assert_eq!(mh1, EncodedMultihash::try_from(s.as_str()).unwrap());
             }
         }
     }
-    */
 
     #[test]
     fn test_binary_roundtrip() {
@@ -271,5 +273,13 @@ mod tests {
         let mh2 = Multihash::try_from(v.as_ref()).unwrap();
 
         assert_eq!(mh1, mh2);
+    }
+
+    #[test]
+    fn test_encoded() {
+        let mh = Builder::new(Codec::Sha3256)
+            .try_build_encoded(b"for great justice, move every zig!")
+            .unwrap();
+        println!("{:?}", mh);
     }
 }
