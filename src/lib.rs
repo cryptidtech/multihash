@@ -21,9 +21,9 @@ pub mod serde;
 
 /// ...and in the darkness bind them
 pub mod prelude {
-    pub use super::mh::{Builder, Multihash};
+    pub use super::*;
     /// re-exports
     pub use multibase::Base;
-    pub use multicodec::prelude::Codec;
-    pub use multiutil::prelude::BaseEncoded;
+    pub use multicodec::Codec;
+    pub use multiutil::BaseEncoded;
 }
