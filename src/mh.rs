@@ -1,13 +1,10 @@
 use crate::Error;
+use core::fmt;
 use digest::{Digest, DynDigest};
 use multibase::Base;
 use multicodec::Codec;
 use multitrait::TryDecodeFrom;
 use multiutil::{BaseEncoded, CodecInfo, EncodingInfo, Varbytes};
-use std::{
-    fmt,
-    hash::{Hash, Hasher},
-};
 use typenum::consts::*;
 
 /// the multicodec sigil for multihash
@@ -17,7 +14,7 @@ pub const SIGIL: Codec = Codec::Multihash;
 pub type EncodedMultihash = BaseEncoded<Multihash>;
 
 /// inner implementation of the multihash
-#[derive(Clone, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct Multihash {
     /// hash codec
     pub(crate) codec: Codec,
@@ -45,17 +42,6 @@ impl EncodingInfo for Multihash {
 
     fn encoding(&self) -> Base {
         Self::preferred_encoding()
-    }
-}
-
-impl Hash for Multihash {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        // hash in the multihash sigil
-        SIGIL.hash(state);
-        // hash in the hash codec
-        self.codec.hash(state);
-        // hash in the digest bytes
-        self.hash.hash(state);
     }
 }
 
