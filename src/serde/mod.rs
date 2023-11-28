@@ -1,14 +1,14 @@
-//! Serde (de)serialization for [`crate::prelude::MultihashImpl`]
+//! Serde (de)serialization for [`crate::Multihash`]
 mod de;
 mod ser;
 
 #[cfg(test)]
 mod tests {
-    use crate::prelude::{Base, Builder, Codec};
+    use crate::prelude::{Base, Builder, Codec, Multihash};
     use serde_test::{assert_tokens, Configure, Token};
 
     #[test]
-    fn test_serde_binary() {
+    fn test_serde_compact() {
         let mh = Builder::new(Codec::Blake2S256)
             .try_build(b"for great justice, move every zig!")
             .unwrap();
@@ -64,5 +64,27 @@ mod tests {
                 Token::StructEnd,
             ],
         );
+    }
+
+    #[test]
+    fn test_serde_json() {
+        let mh1 = Builder::new(Codec::Blake2S256)
+            .try_build(b"for great justice, move every zig!")
+            .unwrap();
+        let s = serde_json::to_string(&mh1).unwrap();
+        assert_eq!(s, "{\"codec\":45664,\"hash\":\"f20642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0\"}".to_string());
+        let mh2: Multihash = serde_json::from_str(&s).unwrap();
+        assert_eq!(mh1, mh2);
+    }
+
+    #[test]
+    fn test_serde_cbor() {
+        let mh1 = Builder::new(Codec::Blake2S256)
+            .try_build(b"for great justice, move every zig!")
+            .unwrap();
+        let v = serde_cbor::to_vec(&mh1).unwrap();
+        assert_eq!(v, hex::decode("83413143e0e402582120642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0").unwrap());
+        let mh2: Multihash = serde_cbor::from_slice(&v).unwrap();
+        assert_eq!(mh1, mh2);
     }
 }

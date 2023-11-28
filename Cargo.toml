@@ -1,6 +1,6 @@
 [package]
 name = "multihash"
-version = "0.2.8"
+version = "0.2.9"
 edition = "2021"
 authors = ["Dave Huseby <dwh@linuxprogrammer.org>"]
 description = "Multihash self-describing cryptographic hash data"
@@ -20,7 +20,7 @@ multicodec = { version = "0.2", git = "https://github.com/cryptidtech/rust-multi
 multitrait = { version = "0.1", git = "https://github.com/cryptidtech/multitrait.git" }
 multiutil = { version = "0.1", git = "https://github.com/cryptidtech/multiutil.git" }
 ripemd = "0.1.3"
-serde = { version = "1.0", default-features = false, features = ["alloc"], optional = true }
+serde = { version = "1.0", default-features = false, features = ["alloc", "derive"], optional = true }
 sha1 = "0.10"
 sha2 = "0.10"
 sha3 = "0.10"

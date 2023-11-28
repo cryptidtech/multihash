@@ -1,9 +1,9 @@
 use crate::Error;
 use digest::{Digest, DynDigest};
 use multibase::Base;
-use multicodec::prelude::Codec;
-use multitrait::prelude::{EncodeInto, TryDecodeFrom};
-use multiutil::prelude::{BaseEncoded, CodecInfo, EncodingInfo};
+use multicodec::Codec;
+use multitrait::TryDecodeFrom;
+use multiutil::{BaseEncoded, CodecInfo, EncodingInfo, Varbytes};
 use std::{
     fmt,
     hash::{Hash, Hasher},
@@ -13,7 +13,7 @@ use typenum::consts::*;
 /// the multicodec sigil for multihash
 pub const SIGIL: Codec = Codec::Multihash;
 
-/// the multihash structure
+/// a base encoded multihash
 pub type EncodedMultihash = BaseEncoded<Multihash>;
 
 /// inner implementation of the multihash
@@ -66,10 +66,8 @@ impl Into<Vec<u8>> for Multihash {
         v.append(&mut SIGIL.into());
         // add in the hash codec
         v.append(&mut self.codec.clone().into());
-        // add in the length of the hash
-        v.append(&mut self.hash.len().encode_into());
-        // add in the hash bytes
-        v.extend_from_slice(&self.hash);
+        // add in the hash data
+        v.append(&mut Varbytes(self.hash.clone()).into());
         v
     }
 }
@@ -96,13 +94,11 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
         // decode the hashing codec
         let (codec, ptr) = Codec::try_decode_from(ptr)?;
 
-        // decode the hash size
-        let (size, ptr) = usize::try_decode_from(ptr)?;
-
         // decode the hash bytes
-        let mut hash = Vec::with_capacity(size);
-        hash.extend_from_slice(&ptr[..size]);
-        let ptr = &ptr[size..];
+        let (hash, ptr) = Varbytes::try_decode_from(ptr)?;
+
+        // pull the inner Vec<u8> out of Varbytes
+        let hash = hash.to_inner();
 
         Ok((Self { codec, hash }, ptr))
     }

@@ -2,7 +2,7 @@ use crate::mh::{Multihash, SIGIL};
 use multiutil::Varbytes;
 use serde::ser::{self, SerializeStruct};
 
-/// Serialize instance of [`crate::mh::MultihashImpl`] into a tuple
+/// Serialize instance of [`crate::Multihash`]
 impl ser::Serialize for Multihash {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
