@@ -113,14 +113,7 @@ impl AsRef<[u8]> for Multihash {
 
 impl fmt::Debug for Multihash {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{} - (0x{:x}) - {} - (0x{:x})",
-            SIGIL.as_str(),
-            SIGIL.code(),
-            self.codec().as_str(),
-            self.codec().code()
-        )
+        write!(f, "{:?} - {:?}", SIGIL, self.codec(),)
     }
 }
 
@@ -278,8 +271,11 @@ mod tests {
     #[test]
     fn test_encoded() {
         let mh = Builder::new(Codec::Sha3256)
+            .with_encoding(Base::Base58Btc)
             .try_build_encoded(b"for great justice, move every zig!")
             .unwrap();
         println!("{:?}", mh);
+        let s = mh.to_string();
+        assert_eq!(mh, EncodedMultihash::try_from(s.as_str()).unwrap());
     }
 }
