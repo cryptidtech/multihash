@@ -39,8 +39,8 @@ mod tests {
 
         assert_tokens(
             &mh.readable(),
-            &[Token::String(
-                "z2fxXB6wkDUNsk96BNo1nB84GoEhtwEU3YoFLPVbzpg6ystG88i3",
+            &[Token::BorrowedStr(
+                "z2i3XjxBTdEn8wccxPbpSQgKveXi5jB8zUn4S9u57ZmyhQuS3bm",
             )],
         );
     }

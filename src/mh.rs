@@ -48,8 +48,6 @@ impl EncodingInfo for Multihash {
 impl Into<Vec<u8>> for Multihash {
     fn into(self) -> Vec<u8> {
         let mut v = Vec::default();
-        // add in the multihash sigil
-        v.append(&mut SIGIL.into());
         // add in the hash codec
         v.append(&mut self.codec.clone().into());
         // add in the hash data
@@ -71,14 +69,8 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
     type Error = Error;
 
     fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
-        // decode the sigil
-        let (sigil, ptr) = Codec::try_decode_from(bytes)?;
-        if sigil != SIGIL {
-            return Err(Error::MissingSigil);
-        }
-
         // decode the hashing codec
-        let (codec, ptr) = Codec::try_decode_from(ptr)?;
+        let (codec, ptr) = Codec::try_decode_from(bytes)?;
 
         // decode the hash bytes
         let (hash, ptr) = Varbytes::try_decode_from(ptr)?;
