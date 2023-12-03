@@ -26,5 +26,5 @@ pub enum Error {
 
     /// Error with the hash scheme
     #[error("Unsupported hash algorithm: {0}")]
-    UnsupportedHash(String),
+    UnsupportedHash(multicodec::Codec),
 }

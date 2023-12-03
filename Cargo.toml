@@ -1,6 +1,6 @@
 [package]
 name = "multihash"
-version = "0.2.18"
+version = "0.2.19"
 edition = "2021"
 authors = ["Dave Huseby <dwh@linuxprogrammer.org>"]
 description = "Multihash self-describing cryptographic hash data"

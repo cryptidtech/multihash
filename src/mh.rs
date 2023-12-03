@@ -99,6 +99,7 @@ impl fmt::Debug for Multihash {
 #[derive(Clone, Debug)]
 pub struct Builder {
     codec: Codec,
+    hash: Vec<u8>,
     base_encoding: Base,
 }
 
@@ -107,27 +108,14 @@ impl Builder {
     pub fn new(codec: Codec) -> Self {
         Builder {
             codec,
+            hash: Vec::default(),
             base_encoding: Multihash::preferred_encoding(),
         }
     }
 
-    /// set the base encoding codec
-    pub fn with_base_encoding(mut self, base: Base) -> Self {
-        self.base_encoding = base;
-        self
-    }
-
-    /// build a base encoded multihash
-    pub fn try_build_encoded(&self, data: impl AsRef<[u8]>) -> Result<EncodedMultihash, Error> {
-        Ok(BaseEncoded::new_base(
-            self.base_encoding,
-            self.try_build(data)?,
-        ))
-    }
-
-    /// build the multihash by hashing the provided data
-    pub fn try_build(&self, data: impl AsRef<[u8]>) -> Result<Multihash, Error> {
-        let mut hasher: Box<dyn DynDigest> = match self.codec {
+    /// create a new builder from a hash
+    pub fn new_from_bytes(codec: Codec, bytes: impl AsRef<[u8]>) -> Result<Self, Error> {
+        let mut hasher: Box<dyn DynDigest> = match codec {
             Codec::Blake2B224 => Box::new(blake2::Blake2b::<U28>::new()),
             Codec::Blake2B256 => Box::new(blake2::Blake2b::<U32>::new()),
             Codec::Blake2B384 => Box::new(blake2::Blake2b::<U48>::new()),
@@ -150,15 +138,42 @@ impl Builder {
             Codec::Sha3256 => Box::new(sha3::Sha3_256::new()),
             Codec::Sha3384 => Box::new(sha3::Sha3_384::new()),
             Codec::Sha3512 => Box::new(sha3::Sha3_512::new()),
-            _ => return Err(Error::UnsupportedHash(self.codec.to_string())),
+            _ => return Err(Error::UnsupportedHash(codec)),
         };
 
         // hash the data
-        hasher.update(data.as_ref());
-        Ok(Multihash {
-            codec: self.codec,
-            hash: hasher.finalize().to_vec(),
+        hasher.update(bytes.as_ref());
+        let hash = hasher.finalize().to_vec();
+        Ok(Self {
+            codec,
+            hash,
+            base_encoding: Multihash::preferred_encoding(),
         })
+    }
+
+    /// set the hash data
+    pub fn with_hash(mut self, hash: impl Into<Vec<u8>>) -> Self {
+        self.hash = hash.into();
+        self
+    }
+
+    /// set the base encoding codec
+    pub fn with_base_encoding(mut self, base: Base) -> Self {
+        self.base_encoding = base;
+        self
+    }
+
+    /// build a base encoded multihash
+    pub fn build_encoded(&self) -> EncodedMultihash {
+        BaseEncoded::new_base(self.base_encoding, self.build())
+    }
+
+    /// build the multihash by hashing the provided data
+    pub fn build(&self) -> Multihash {
+        Multihash {
+            codec: self.codec,
+            hash: self.hash.clone(),
+        }
     }
 }
 
@@ -220,10 +235,10 @@ mod tests {
 
         for h in &hashers {
             for b in &bases {
-                let mh1 = Builder::new(*h)
+                let mh1 = Builder::new_from_bytes(*h, b"for great justice, move every zig!")
+                    .unwrap()
                     .with_base_encoding(*b)
-                    .try_build_encoded(b"for great justice, move every zig!")
-                    .unwrap();
+                    .build_encoded();
                 //println!("{:?}", mh1);
                 let s = mh1.to_string();
                 assert_eq!(mh1, EncodedMultihash::try_from(s.as_str()).unwrap());
@@ -233,23 +248,20 @@ mod tests {
 
     #[test]
     fn test_binary_roundtrip() {
-        let mh1 = Builder::new(Codec::Sha3384)
-            .try_build(b"for great justice, move every zig!")
-            .unwrap();
-
+        let mh1 = Builder::new_from_bytes(Codec::Sha3384, b"for great justice, move every zig!")
+            .unwrap()
+            .build();
         let v: Vec<u8> = mh1.clone().into();
-
         let mh2 = Multihash::try_from(v.as_ref()).unwrap();
-
         assert_eq!(mh1, mh2);
     }
 
     #[test]
     fn test_encoded() {
-        let mh = Builder::new(Codec::Sha3256)
+        let mh = Builder::new_from_bytes(Codec::Sha3256, b"for great justice, move every zig!")
+            .unwrap()
             .with_base_encoding(Base::Base58Btc)
-            .try_build_encoded(b"for great justice, move every zig!")
-            .unwrap();
+            .build_encoded();
         println!("{:?}", mh);
         let s = mh.to_string();
         assert_eq!(mh, EncodedMultihash::try_from(s.as_str()).unwrap());
