@@ -1,4 +1,4 @@
-use crate::mh::{Multihash, SIGIL};
+use crate::{mh::SIGIL, Multihash};
 use core::fmt;
 use multicodec::Codec;
 use multiutil::{EncodedVarbytes, Varbytes};
@@ -73,10 +73,9 @@ impl<'de> Deserialize<'de> for Multihash {
             if sigil != SIGIL {
                 return Err(Error::custom("deserialized sigil is not a Multihash sigil"));
             }
-            Ok(Self {
-                codec,
-                hash: hash.to_inner(),
-            })
+            let hash = hash.to_inner();
+
+            Ok(Self { codec, hash })
         }
     }
 }
