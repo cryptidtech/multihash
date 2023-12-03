@@ -43,9 +43,9 @@ impl<'de> Deserialize<'de> for Multihash {
                             if codec.is_some() {
                                 return Err(Error::duplicate_field("codec"));
                             }
-                            let c: u64 = map.next_value()?;
+                            let s: &str = map.next_value()?;
                             codec = Some(
-                                Codec::try_from(c)
+                                Codec::try_from(s)
                                     .map_err(|_| Error::custom("invalid multihash codec"))?,
                             );
                         }
@@ -54,15 +54,12 @@ impl<'de> Deserialize<'de> for Multihash {
                                 return Err(Error::duplicate_field("hash"));
                             }
                             let vb: EncodedVarbytes = map.next_value()?;
-                            hash = Some(vb);
+                            hash = Some(vb.to_inner().to_inner());
                         }
                     }
                 }
                 let codec = codec.ok_or_else(|| Error::missing_field("codec"))?;
-                let hash = hash
-                    .ok_or_else(|| Error::missing_field("hash"))?
-                    .to_inner()
-                    .to_inner();
+                let hash = hash.ok_or_else(|| Error::missing_field("hash"))?;
                 Ok(Multihash { codec, hash })
             }
         }

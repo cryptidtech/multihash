@@ -33,7 +33,7 @@ mod tests {
     #[test]
     fn test_serde_encoded_string() {
         let mh = Builder::new(Codec::Blake2S256)
-            .with_encoding(Base::Base58Btc)
+            .with_base_encoding(Base::Base58Btc)
             .try_build_encoded(b"for great justice, move every zig!")
             .unwrap();
 
@@ -58,7 +58,7 @@ mod tests {
                     len: 2,
                 },
                 Token::BorrowedStr("codec"),
-                Token::U64(0xb260_u64),
+                Token::BorrowedStr("blake2s-256"),
                 Token::BorrowedStr("hash"),
                 Token::BorrowedStr(
                     "f20642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0",
@@ -74,7 +74,7 @@ mod tests {
             .try_build(b"for great justice, move every zig!")
             .unwrap();
         let s = serde_json::to_string(&mh1).unwrap();
-        assert_eq!(s, "{\"codec\":45664,\"hash\":\"f20642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0\"}".to_string());
+        assert_eq!(s, "{\"codec\":\"blake2s-256\",\"hash\":\"f20642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0\"}".to_string());
         let mh2: Multihash = serde_json::from_str(&s).unwrap();
         assert_eq!(mh1, mh2);
     }

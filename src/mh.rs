@@ -96,10 +96,10 @@ impl fmt::Debug for Multihash {
 }
 
 /// Hash builder that takes the codec and the data and produces a Multihash
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Builder {
     codec: Codec,
-    encoding: Option<Base>,
+    base_encoding: Base,
 }
 
 impl Builder {
@@ -107,28 +107,26 @@ impl Builder {
     pub fn new(codec: Codec) -> Self {
         Builder {
             codec,
-            encoding: None,
+            base_encoding: Multihash::preferred_encoding(),
         }
     }
 
-    /// add an encoding
-    pub fn with_encoding(mut self, base: Base) -> Self {
-        self.encoding = Some(base);
+    /// set the base encoding codec
+    pub fn with_base_encoding(mut self, base: Base) -> Self {
+        self.base_encoding = base;
         self
     }
 
     /// build a base encoded multihash
-    pub fn try_build_encoded(self, data: impl AsRef<[u8]>) -> Result<EncodedMultihash, Error> {
-        let mh = self.clone().try_build(data)?;
-        if let Some(encoding) = self.encoding {
-            Ok(BaseEncoded::new_base(encoding, mh))
-        } else {
-            Ok(mh.into())
-        }
+    pub fn try_build_encoded(&self, data: impl AsRef<[u8]>) -> Result<EncodedMultihash, Error> {
+        Ok(BaseEncoded::new_base(
+            self.base_encoding,
+            self.try_build(data)?,
+        ))
     }
 
     /// build the multihash by hashing the provided data
-    pub fn try_build(self, data: impl AsRef<[u8]>) -> Result<Multihash, Error> {
+    pub fn try_build(&self, data: impl AsRef<[u8]>) -> Result<Multihash, Error> {
         let mut hasher: Box<dyn DynDigest> = match self.codec {
             Codec::Blake2B224 => Box::new(blake2::Blake2b::<U28>::new()),
             Codec::Blake2B256 => Box::new(blake2::Blake2b::<U32>::new()),
@@ -223,7 +221,7 @@ mod tests {
         for h in &hashers {
             for b in &bases {
                 let mh1 = Builder::new(*h)
-                    .with_encoding(*b)
+                    .with_base_encoding(*b)
                     .try_build_encoded(b"for great justice, move every zig!")
                     .unwrap();
                 //println!("{:?}", mh1);
@@ -249,7 +247,7 @@ mod tests {
     #[test]
     fn test_encoded() {
         let mh = Builder::new(Codec::Sha3256)
-            .with_encoding(Base::Base58Btc)
+            .with_base_encoding(Base::Base58Btc)
             .try_build_encoded(b"for great justice, move every zig!")
             .unwrap();
         println!("{:?}", mh);
