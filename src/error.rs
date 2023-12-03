@@ -24,6 +24,10 @@ pub enum Error {
     #[error("Missing Multihash sigil")]
     MissingSigil,
 
+    /// Missing hash data
+    #[error("Missing hash data")]
+    MissingHash,
+
     /// Error with the hash scheme
     #[error("Unsupported hash algorithm: {0}")]
     UnsupportedHash(multicodec::Codec),

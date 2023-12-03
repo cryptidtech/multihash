@@ -11,7 +11,8 @@ mod tests {
     fn test_serde_compact() {
         let mh = Builder::new_from_bytes(Codec::Blake2S256, b"for great justice, move every zig!")
             .unwrap()
-            .build();
+            .try_build()
+            .unwrap();
 
         assert_tokens(
             &mh.compact(), // convert to Tagged<MultihashImpl>
@@ -35,7 +36,8 @@ mod tests {
         let mh = Builder::new_from_bytes(Codec::Blake2S256, b"for great justice, move every zig!")
             .unwrap()
             .with_base_encoding(Base::Base58Btc)
-            .build_encoded();
+            .try_build_encoded()
+            .unwrap();
 
         assert_tokens(
             &mh.readable(),
@@ -49,7 +51,8 @@ mod tests {
     fn test_serde_string() {
         let mh = Builder::new_from_bytes(Codec::Blake2S256, b"for great justice, move every zig!")
             .unwrap()
-            .build();
+            .try_build()
+            .unwrap();
         assert_tokens(
             &mh.readable(),
             &[
@@ -72,7 +75,8 @@ mod tests {
     fn test_serde_json() {
         let mh1 = Builder::new_from_bytes(Codec::Blake2S256, b"for great justice, move every zig!")
             .unwrap()
-            .build();
+            .try_build()
+            .unwrap();
         let s = serde_json::to_string(&mh1).unwrap();
         assert_eq!(s, "{\"codec\":\"blake2s-256\",\"hash\":\"f20642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0\"}".to_string());
         let mh2: Multihash = serde_json::from_str(&s).unwrap();
@@ -83,7 +87,8 @@ mod tests {
     fn test_serde_cbor() {
         let mh1 = Builder::new_from_bytes(Codec::Blake2S256, b"for great justice, move every zig!")
             .unwrap()
-            .build();
+            .try_build()
+            .unwrap();
         let v = serde_cbor::to_vec(&mh1).unwrap();
         assert_eq!(v, hex::decode("83413143e0e402582120642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0").unwrap());
         let mh2: Multihash = serde_cbor::from_slice(&v).unwrap();

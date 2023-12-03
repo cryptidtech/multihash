@@ -96,11 +96,11 @@ impl fmt::Debug for Multihash {
 }
 
 /// Hash builder that takes the codec and the data and produces a Multihash
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Builder {
     codec: Codec,
-    hash: Vec<u8>,
-    base_encoding: Base,
+    hash: Option<Vec<u8>>,
+    base_encoding: Option<Base>,
 }
 
 impl Builder {
@@ -108,8 +108,7 @@ impl Builder {
     pub fn new(codec: Codec) -> Self {
         Builder {
             codec,
-            hash: Vec::default(),
-            base_encoding: Multihash::preferred_encoding(),
+            ..Default::default()
         }
     }
 
@@ -146,34 +145,38 @@ impl Builder {
         let hash = hasher.finalize().to_vec();
         Ok(Self {
             codec,
-            hash,
-            base_encoding: Multihash::preferred_encoding(),
+            hash: Some(hash),
+            base_encoding: None,
         })
     }
 
     /// set the hash data
     pub fn with_hash(mut self, hash: impl Into<Vec<u8>>) -> Self {
-        self.hash = hash.into();
+        self.hash = Some(hash.into());
         self
     }
 
     /// set the base encoding codec
     pub fn with_base_encoding(mut self, base: Base) -> Self {
-        self.base_encoding = base;
+        self.base_encoding = Some(base);
         self
     }
 
     /// build a base encoded multihash
-    pub fn build_encoded(&self) -> EncodedMultihash {
-        BaseEncoded::new_base(self.base_encoding, self.build())
+    pub fn try_build_encoded(&self) -> Result<EncodedMultihash, Error> {
+        Ok(BaseEncoded::new_base(
+            self.base_encoding
+                .unwrap_or_else(|| Multihash::preferred_encoding()),
+            self.try_build()?,
+        ))
     }
 
     /// build the multihash by hashing the provided data
-    pub fn build(&self) -> Multihash {
-        Multihash {
+    pub fn try_build(&self) -> Result<Multihash, Error> {
+        Ok(Multihash {
             codec: self.codec,
-            hash: self.hash.clone(),
-        }
+            hash: self.hash.clone().ok_or_else(|| Error::MissingHash)?,
+        })
     }
 }
 
@@ -238,7 +241,8 @@ mod tests {
                 let mh1 = Builder::new_from_bytes(*h, b"for great justice, move every zig!")
                     .unwrap()
                     .with_base_encoding(*b)
-                    .build_encoded();
+                    .try_build_encoded()
+                    .unwrap();
                 //println!("{:?}", mh1);
                 let s = mh1.to_string();
                 assert_eq!(mh1, EncodedMultihash::try_from(s.as_str()).unwrap());
@@ -250,7 +254,8 @@ mod tests {
     fn test_binary_roundtrip() {
         let mh1 = Builder::new_from_bytes(Codec::Sha3384, b"for great justice, move every zig!")
             .unwrap()
-            .build();
+            .try_build()
+            .unwrap();
         let v: Vec<u8> = mh1.clone().into();
         let mh2 = Multihash::try_from(v.as_ref()).unwrap();
         assert_eq!(mh1, mh2);
@@ -261,7 +266,8 @@ mod tests {
         let mh = Builder::new_from_bytes(Codec::Sha3256, b"for great justice, move every zig!")
             .unwrap()
             .with_base_encoding(Base::Base58Btc)
-            .build_encoded();
+            .try_build_encoded()
+            .unwrap();
         println!("{:?}", mh);
         let s = mh.to_string();
         assert_eq!(mh, EncodedMultihash::try_from(s.as_str()).unwrap());
