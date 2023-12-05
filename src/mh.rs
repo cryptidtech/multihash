@@ -93,7 +93,7 @@ impl fmt::Debug for Multihash {
             "{:?} - {:?} - {}",
             SIGIL,
             self.codec(),
-            multibase::encode(Self::preferred_encoding(), &self.hash)
+            hex::encode(&self.hash)
         )
     }
 }

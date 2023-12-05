@@ -1,6 +1,6 @@
 [package]
 name = "multihash"
-version = "0.2.23"
+version = "0.2.24"
 edition = "2021"
 authors = ["Dave Huseby <dwh@linuxprogrammer.org>"]
 description = "Multihash self-describing cryptographic hash data"
@@ -14,6 +14,7 @@ default = ["serde"]
 [dependencies]
 blake2 = "0.10"
 digest = "0.10"
+hex = "0.4"
 md-5 = "0.10"
 multibase = "0.9"
 multicodec = { version = "0.3", git = "https://github.com/cryptidtech/rust-multicodec.git" }
