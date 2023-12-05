@@ -71,13 +71,10 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
     fn try_decode_from(bytes: &'a [u8]) -> Result<(Self, &'a [u8]), Self::Error> {
         // decode the hashing codec
         let (codec, ptr) = Codec::try_decode_from(bytes)?;
-
         // decode the hash bytes
         let (hash, ptr) = Varbytes::try_decode_from(ptr)?;
-
         // pull the inner Vec<u8> out of Varbytes
         let hash = hash.to_inner();
-
         Ok((Self { codec, hash }, ptr))
     }
 }
@@ -164,7 +161,7 @@ impl Builder {
 
     /// build a base encoded multihash
     pub fn try_build_encoded(&self) -> Result<EncodedMultihash, Error> {
-        Ok(BaseEncoded::new_base(
+        Ok(BaseEncoded::new(
             self.base_encoding
                 .unwrap_or_else(|| Multihash::preferred_encoding()),
             self.try_build()?,
