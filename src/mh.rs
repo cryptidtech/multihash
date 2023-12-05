@@ -88,7 +88,13 @@ impl AsRef<[u8]> for Multihash {
 
 impl fmt::Debug for Multihash {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?} - {:?}", SIGIL, self.codec(),)
+        write!(
+            f,
+            "{:?} - {:?} - {}",
+            SIGIL,
+            self.codec(),
+            multibase::encode(Self::preferred_encoding(), &self.hash)
+        )
     }
 }
 
