@@ -5,6 +5,7 @@ mod ser;
 #[cfg(test)]
 mod tests {
     use crate::prelude::{Base, Builder, Codec, Multihash};
+    use multitrait::Null;
     use serde_test::{assert_tokens, Configure, Token};
 
     #[test]
@@ -93,5 +94,36 @@ mod tests {
         assert_eq!(v, hex::decode("83413143e0e402582120642203125d59e8b93edb676fc78de9c587cf52ccc6f219032da1f377082332b0").unwrap());
         let mh2: Multihash = serde_cbor::from_slice(&v).unwrap();
         assert_eq!(mh1, mh2);
+    }
+
+    #[test]
+    fn test_null_serde_compact() {
+        let mh = Multihash::null();
+        assert_tokens(
+            &mh.compact(),
+            &[
+                Token::Tuple { len: 3, },
+                Token::BorrowedBytes(&[0x31]),
+                Token::BorrowedBytes(&[0x0]),
+                Token::BorrowedBytes(&[0x0]),
+                Token::TupleEnd,
+            ],
+        );
+    }
+
+    #[test]
+    fn test_null_serde_readable() {
+        let mh = Multihash::null();
+        assert_tokens(
+            &mh.readable(),
+            &[
+                Token::Struct { name: "multihash", len: 2 },
+                Token::BorrowedStr("codec"),
+                Token::BorrowedStr("identity"),
+                Token::BorrowedStr("hash"),
+                Token::BorrowedStr("f00"),
+                Token::StructEnd,
+            ],
+        );
     }
 }
