@@ -3,7 +3,7 @@ use core::fmt;
 use digest::{Digest, DynDigest};
 use multibase::Base;
 use multicodec::Codec;
-use multitrait::TryDecodeFrom;
+use multitrait::{Null, TryDecodeFrom};
 use multiutil::{BaseEncoded, CodecInfo, EncodingInfo, Varbytes};
 use typenum::consts::*;
 
@@ -83,6 +83,17 @@ impl<'a> TryDecodeFrom<'a> for Multihash {
 impl AsRef<[u8]> for Multihash {
     fn as_ref(&self) -> &[u8] {
         self.hash.as_ref()
+    }
+}
+
+/// Multihashes can have a null value
+impl Null for Multihash {
+    fn null() -> Self {
+        Multihash::default()
+    }
+
+    fn is_null(&self) -> bool {
+        *self == Multihash::default()
     }
 }
 
@@ -271,8 +282,28 @@ mod tests {
             .with_base_encoding(Base::Base58Btc)
             .try_build_encoded()
             .unwrap();
-        println!("{:?}", mh);
         let s = mh.to_string();
+        println!("{:?}", mh);
+        println!("{s}");
         assert_eq!(mh, EncodedMultihash::try_from(s.as_str()).unwrap());
+    }
+
+    #[test]
+    fn test_matching() {
+        let mh1 = Builder::new_from_bytes(Codec::Sha3256, b"for great justice, move every zig!")
+            .unwrap()
+            .try_build()
+            .unwrap();
+        let mh2 = Multihash::try_from(hex::decode("16206b761d3b2e7675e088e337a82207b55711d3957efdb877a3d261b0ca2c38e201").unwrap().as_ref()).unwrap();
+        assert_eq!(mh1, mh2);
+    }
+
+    #[test]
+    fn test_null() {
+        let mh1 = Multihash::null();
+        assert!(mh1.is_null());
+        let mh2 = Multihash::default();
+        assert_eq!(mh1, mh2);
+        assert!(mh2.is_null());
     }
 }
