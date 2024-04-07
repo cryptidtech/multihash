@@ -306,4 +306,47 @@ mod tests {
         assert_eq!(mh1, mh2);
         assert!(mh2.is_null());
     }
+
+    #[test]
+    fn test_multihash_sha1() {
+        // test cases from: https://github.com/multiformats/multihash?tab=readme-ov-file#example
+        let bases = vec![
+            (Base::Base16Lower, "f111488c2f11fb2ce392acb5b2986e640211c4690073e"),
+            (Base::Base32Upper, "BCEKIRQXRD6ZM4OJKZNNSTBXGIAQRYRUQA47A"),
+            (Base::Base58Btc, "z5dsgvJGnvAfiR3K6HCBc4hcokSfmjj"),
+            (Base::Base64, "mERSIwvEfss45KstbKYbmQCEcRpAHPg"),
+        ];
+
+        for (b, h) in bases {
+            let mh = Builder::new_from_bytes(Codec::Sha1, b"multihash")
+                .unwrap()
+                .with_base_encoding(b)
+                .try_build_encoded()
+                .unwrap();
+            let s = mh.to_string();
+            assert_eq!(h, s.as_str());
+        }
+    }
+
+    #[test]
+    fn test_multihash_sha2_256() {
+        // test cases from: https://github.com/multiformats/multihash?tab=readme-ov-file#example
+        let bases = vec![
+            (Base::Base16Lower, "f12209cbc07c3f991725836a3aa2a581ca2029198aa420b9d99bc0e131d9f3e2cbe47"),
+            (Base::Base32Upper, "BCIQJZPAHYP4ZC4SYG2R2UKSYDSRAFEMYVJBAXHMZXQHBGHM7HYWL4RY"),
+            (Base::Base58Btc, "zQmYtUc4iTCbbfVSDNKvtQqrfyezPPnFvE33wFmutw9PBBk"),
+            (Base::Base64, "mEiCcvAfD+ZFyWDajqipYHKICkZiqQgudmbwOEx2fPiy+Rw"),
+        ];
+
+        for (b, h) in bases {
+            let mh = Builder::new_from_bytes(Codec::Sha2256, b"multihash")
+                .unwrap()
+                .with_base_encoding(b)
+                .try_build_encoded()
+                .unwrap();
+            let s = mh.to_string();
+            assert_eq!(h, s.as_str());
+        }
+    }
+
 }
