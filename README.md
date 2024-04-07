@@ -5,13 +5,17 @@
 
 # Multihash
 
-Multiformats multihash implementation without size in the type signature. Uses
-the [`multiutil::BaseEncoded`] smart pointers to wrap the Multihash into
-EncodecMultihash for base encoded multihashes. This automates the
-encoding/decoding to/from strings and byte slices for multihashes. It also has
-serde support to/from human readable and binary formats. It also supports raw
-binary encoding and decoding using [`Into<Vec<u8>>`] and [`TryFrom<&[u8]>`]
-trait implementations.
+Multiformats [Multihash][MULTIHASH] implementation without constant size in the
+type signature.
+
+## Features
+
+* Uses the [`multiutil::BaseEncoded`] smart pointers to wrap the Multihash into
+  EncodecMultihash for base encoded multihashes; automating the
+  encoding/decoding to/from strings and byte slices. 
+* Serde support to/from human readable and binary formats.
+* Supports raw binary encoding and decoding using [`Into<Vec<u8>>`] and
+  [`TryFrom<&[u8]>`] trait implementations.
 
 ## Examples
 
@@ -47,3 +51,4 @@ let encoded_mh2: EncodedMultihash::new(Base::Base32Upper, mh);
 [CRYPTID]: https://cryptid.tech/
 [PROVENANCE]: https://github.com/cryptidtech/provenance-specifications/
 [MULTIFORMATS]: https://github.com/multiformats/multiformats/
+[MULTIHASH]: https://www.multiformats.io/multihash/
