@@ -1,3 +1,4 @@
+// SPDX-License-Idnetifier: Apache-2.0
 //! Serde (de)serialization for [`crate::Multihash`]
 mod de;
 mod ser;

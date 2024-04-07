@@ -1,3 +1,4 @@
+// SPDX-License-Idnetifier: Apache-2.0
 use crate::{mh::SIGIL, Multihash};
 use core::fmt;
 use multicodec::Codec;

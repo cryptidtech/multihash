@@ -1,3 +1,4 @@
+// SPDX-License-Idnetifier: Apache-2.0
 use crate::Error;
 use core::fmt;
 use digest::{Digest, DynDigest};
