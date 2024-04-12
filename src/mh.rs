@@ -8,6 +8,41 @@ use multitrait::{Null, TryDecodeFrom};
 use multiutil::{BaseEncoded, CodecInfo, EncodingInfo, Varbytes};
 use typenum::consts::*;
 
+/// the hash codecs currently supported
+pub const HASH_CODECS: [Codec; 22] = [
+    Codec::Blake2B224,
+    Codec::Blake2B256,
+    Codec::Blake2B384,
+    Codec::Blake2B512,
+    Codec::Blake2S224,
+    Codec::Blake2S256,
+    Codec::Md5,
+    Codec::Ripemd128,
+    Codec::Ripemd160,
+    Codec::Ripemd256,
+    Codec::Ripemd320,
+    Codec::Sha1,
+    Codec::Sha2224,
+    Codec::Sha2256,
+    Codec::Sha2384,
+    Codec::Sha2512,
+    Codec::Sha2512224,
+    Codec::Sha2512256,
+    Codec::Sha3224,
+    Codec::Sha3256,
+    Codec::Sha3384,
+    Codec::Sha3512];
+
+/// the safe hash codecs current supported
+pub const SAFE_HASH_CODECS: [Codec; 7] = [
+    Codec::Blake2B256,
+    Codec::Blake2B384,
+    Codec::Blake2B512,
+    Codec::Blake2S256,
+    Codec::Sha3256,
+    Codec::Sha3384,
+    Codec::Sha3512];
+
 /// the multicodec sigil for multihash
 pub const SIGIL: Codec = Codec::Multihash;
 
