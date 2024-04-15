@@ -18,7 +18,8 @@ impl ser::Serialize for Multihash {
             )?;
             ss.end()
         } else {
-            (SIGIL, self.codec, Varbytes(self.hash.clone())).serialize(serializer)
+            let v: Vec<u8> = self.clone().into();
+            serializer.serialize_bytes(v.as_slice())
         }
     }
 }

@@ -2,7 +2,7 @@
 use crate::{mh::SIGIL, Multihash};
 use core::fmt;
 use multicodec::Codec;
-use multiutil::{EncodedVarbytes, Varbytes};
+use multiutil::EncodedVarbytes;
 use serde::{
     de::{Error, MapAccess, Visitor},
     Deserialize, Deserializer,
@@ -68,15 +68,8 @@ impl<'de> Deserialize<'de> for Multihash {
         if deserializer.is_human_readable() {
             deserializer.deserialize_struct(SIGIL.as_str(), FIELDS, MultihashVisitor)
         } else {
-            let (sigil, codec, hash): (Codec, Codec, Varbytes) =
-                Deserialize::deserialize(deserializer)?;
-
-            if sigil != SIGIL {
-                return Err(Error::custom("deserialized sigil is not a Multihash sigil"));
-            }
-            let hash = hash.to_inner();
-
-            Ok(Self { codec, hash })
+            let b: &'de [u8] = Deserialize::deserialize(deserializer)?;
+            Ok(Self::try_from(b).map_err(|e| Error::custom(e.to_string()))?)
         }
     }
 }
