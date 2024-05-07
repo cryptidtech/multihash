@@ -9,13 +9,14 @@ use multiutil::{BaseEncoded, CodecInfo, EncodingInfo, Varbytes};
 use typenum::consts::*;
 
 /// the hash codecs currently supported
-pub const HASH_CODECS: [Codec; 22] = [
+pub const HASH_CODECS: [Codec; 23] = [
     Codec::Blake2B224,
     Codec::Blake2B256,
     Codec::Blake2B384,
     Codec::Blake2B512,
     Codec::Blake2S224,
     Codec::Blake2S256,
+    Codec::Blake3,
     Codec::Md5,
     Codec::Ripemd128,
     Codec::Ripemd160,
@@ -34,11 +35,12 @@ pub const HASH_CODECS: [Codec; 22] = [
     Codec::Sha3512];
 
 /// the safe hash codecs current supported
-pub const SAFE_HASH_CODECS: [Codec; 7] = [
+pub const SAFE_HASH_CODECS: [Codec; 8] = [
     Codec::Blake2B256,
     Codec::Blake2B384,
     Codec::Blake2B512,
     Codec::Blake2S256,
+    Codec::Blake3,
     Codec::Sha3256,
     Codec::Sha3384,
     Codec::Sha3512];
@@ -171,6 +173,7 @@ impl Builder {
             Codec::Blake2B512 => Box::new(blake2::Blake2b::<U64>::new()),
             Codec::Blake2S224 => Box::new(blake2::Blake2s::<U28>::new()),
             Codec::Blake2S256 => Box::new(blake2::Blake2s::<U32>::new()),
+            Codec::Blake3 => Box::new(blake3::Hasher::new()),
             Codec::Md5 => Box::new(md5::Md5::new()),
             Codec::Ripemd128 => Box::new(ripemd::Ripemd128::new()),
             Codec::Ripemd160 => Box::new(ripemd::Ripemd160::new()),
@@ -243,6 +246,7 @@ mod tests {
             Codec::Blake2B512,
             Codec::Blake2S224,
             Codec::Blake2S256,
+            Codec::Blake3,
             Codec::Md5,
             Codec::Ripemd128,
             Codec::Ripemd160,

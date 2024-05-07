@@ -1,6 +1,6 @@
 [package]
 name = "multihash"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 authors = ["Dave Grantham <dwg@linuxprogrammer.org>"]
 description = "Multihash self-describing cryptographic hash data"
@@ -13,6 +13,7 @@ default = ["serde"]
 
 [dependencies]
 blake2 = "0.10"
+blake3 = { version = "1.5.1", features = ["traits-preview", "zeroize"] }
 digest = "0.10"
 hex = "0.4"
 md-5 = "0.10"
