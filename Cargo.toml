@@ -1,6 +1,6 @@
 [package]
 name = "multihash"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 authors = ["Dave Grantham <dwg@linuxprogrammer.org>"]
 description = "Multihash self-describing cryptographic hash data"
@@ -17,7 +17,7 @@ blake3 = { version = "1.5.1", features = ["traits-preview", "zeroize"] }
 digest = "0.10"
 hex = "0.4"
 md-5 = "0.10"
-multibase = "0.9"
+multibase = { version = "1.0", git = "https://github.com/cryptidtech/rust-multibase.git" }
 multicodec = { version = "1.0", git = "https://github.com/cryptidtech/rust-multicodec.git" }
 multitrait = { version = "1.0", git = "https://github.com/cryptidtech/multitrait.git" }
 multiutil = { version = "1.0", git = "https://github.com/cryptidtech/multiutil.git" }
