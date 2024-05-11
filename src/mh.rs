@@ -5,7 +5,7 @@ use digest::{Digest, DynDigest};
 use multibase::Base;
 use multicodec::Codec;
 use multitrait::{Null, TryDecodeFrom};
-use multiutil::{BaseEncoded, CodecInfo, EncodingInfo, Varbytes};
+use multiutil::{BaseEncoded, CodecInfo, DetectedEncoder, EncodingInfo, Varbytes};
 use typenum::consts::*;
 
 /// the hash codecs currently supported
@@ -49,7 +49,7 @@ pub const SAFE_HASH_CODECS: [Codec; 8] = [
 pub const SIGIL: Codec = Codec::Multihash;
 
 /// a base encoded multihash
-pub type EncodedMultihash = BaseEncoded<Multihash>;
+pub type EncodedMultihash = BaseEncoded<Multihash, DetectedEncoder>;
 
 /// inner implementation of the multihash
 #[derive(Clone, Default, Eq, Ord, PartialEq, PartialOrd)]
